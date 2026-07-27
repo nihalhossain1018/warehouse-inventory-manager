@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">What's where, and whether it matches the shelf.</p>{% endblock %}
+
+{% block content %}
+    <div class="stat-grid">
+        <div class="stat-card blue">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v9"/></svg>
+            </div>
+            <div>
+                <div class="stat-value">{{ summary.total_products }}</div>
+                <div class="stat-label">Total SKUs</div>
+            </div>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            </div>
+            <div>
+                <div class="stat-value">{{ summary.total_locations }}</div>
+                <div class="stat-label">Total Locations</div>
+            </div>
+        </div>
+
+        <div class="stat-card pink">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"/><path d="M12 9v5M12 17h.01"/></svg>
+            </div>
+            <div>
+                <div class="stat-value">{{ summary.total_discrepancies }}</div>
+                <div class="stat-label">Discrepancies Logged</div>
+            </div>
+        </div>
+
+        <div class="stat-card teal">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            </div>
+            <div>
+                <div class="stat-value">{{ summary.total_movements }}</div>
+                <div class="stat-label">Total Movements</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">Quick Actions</h2>
+        <div class="quick-actions">
+            <a class="btn btn-primary" href="{{ url_for('assign') }}">Assign Inventory</a>
+            <a class="btn" href="{{ url_for('products') }}">Add Product</a>
+            <a class="btn" href="{{ url_for('locations') }}">Add Location</a>
+            <a class="btn" href="{{ url_for('reconcile') }}">Reconcile a Count</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">Recent Activity</h2>
+        {% set reason_class = {"received": "badge-blue", "shipped": "badge-purple", "adjustment": "badge-teal", "counted": "badge-neutral"} %}
+        <table>
+            <tr><th>Timestamp</th><th>SKU</th><th>Location</th><th>Old → New</th><th>Reason</th><th>Status</th></tr>
+            {% for m in summary.recent_movements %}
+            <tr>
+                <td>{{ m.timestamp }}</td>
+                <td>{{ m.product_sku }}</td>
+                <td>{{ m.location_code }}</td>
+                <td>{{ m.old_quantity }} → {{ m.new_quantity }}</td>
+                <td><span class="badge {{ reason_class.get(m.reason, 'badge-neutral') }}">{{ m.reason }}</span></td>
+                <td>
+                    {% if m.reason == "counted" %}
+                        {% if m.discrepancy %}
+                            <span class="badge badge-danger">Discrepancy</span>
+                        {% else %}
+                            <span class="badge badge-success">Match</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">No activity yet. Add a product and location, then assign some inventory.</td></tr>
+            {% endfor %}
+        </table>
+        <a class="card-footer-link" href="{{ url_for('movements') }}">View full movement history →</a>
+    </div>
+{% endblock %}

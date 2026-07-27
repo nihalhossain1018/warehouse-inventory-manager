@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}Products{% endblock %}
+{% block content %}
+    <div class="two-col">
+        <div class="card">
+            <h2 class="card-title">Add Product</h2>
+            <form method="post">
+                <label>SKU (leave blank to auto-generate one you can print &amp; scan)</label>
+                <input type="text" name="sku" value="{{ suggested_sku or '' }}">
+                <div class="field-hint"><a href="{{ url_for('products', suggest=1) }}">generate a new SKU</a></div>
+
+                <label>Name</label>
+                <input type="text" name="name" required>
+
+                <label>Category</label>
+                <input type="text" name="category">
+
+                <button type="submit">Add product</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">All Products</h2>
+            <table>
+                <tr><th>SKU</th><th>Name</th><th>Category</th><th>Barcode</th><th></th></tr>
+                {% for p in products %}
+                <tr>
+                    <td>{{ p.sku }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.category or "" }}</td>
+                    <td><span class="barcode-chip">{{ barcode_svg(p.sku) | safe }}</span></td>
+                    <td>
+                        <form method="post" action="{{ url_for('delete_product', sku=p.sku) }}" class="inline-form"
+                              onsubmit="return confirm('Delete product {{ p.sku }}? This only works if it has no inventory or movement history.');">
+                            <button type="submit" class="btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No products yet.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

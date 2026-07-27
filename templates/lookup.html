@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block page_title %}Lookup Inventory{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Search by SKU to see every location holding that product, or by location to see everything stored there.</p>{% endblock %}
+{% block content %}
+    <div class="card" style="max-width: 460px;">
+        <form method="get">
+            <label>Product (SKU)</label>
+            <select name="sku">
+                <option value="">-- none --</option>
+                {% for p in products %}
+                <option value="{{ p.sku }}">{{ p.sku }} - {{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="or-divider">— or —</div>
+
+            <label>Location</label>
+            <select name="location_code">
+                <option value="">-- none --</option>
+                {% for l in locations %}
+                <option value="{{ l.code }}">{{ l.code }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    {% if result %}
+        {% set kind, data = result %}
+        <div class="card">
+            {% if kind == "sku" %}
+                <h2 class="card-title">{{ data.product.sku }} - {{ data.product.name }}</h2>
+                <table>
+                    <tr><th>Location</th><th>Quantity</th></tr>
+                    {% for row in data.inventory %}
+                    <tr><td>{{ row.location_code }}</td><td>{{ row.quantity }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2">Not stocked anywhere yet.</td></tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <h2 class="card-title">{{ data.location.code }}</h2>
+                <table>
+                    <tr><th>SKU</th><th>Product</th><th>Quantity</th></tr>
+                    {% for row in data.inventory %}
+                    <tr><td>{{ row.product_sku }}</td><td>{{ row.product_name }}</td><td>{{ row.quantity }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="3">Nothing stocked here yet.</td></tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

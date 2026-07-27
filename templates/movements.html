@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block page_title %}Movement History{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">See every recorded change for a product or a location, most recent first.</p>{% endblock %}
+{% block content %}
+    <div class="card" style="max-width: 460px;">
+        <form method="get">
+            <label>Product (SKU)</label>
+            <select name="sku">
+                <option value="">-- none --</option>
+                {% for p in products %}
+                <option value="{{ p.sku }}">{{ p.sku }} - {{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="or-divider">— or —</div>
+
+            <label>Location</label>
+            <select name="location_code">
+                <option value="">-- none --</option>
+                {% for l in locations %}
+                <option value="{{ l.code }}">{{ l.code }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    {% if history %}
+        {% set kind, key, entries = history %}
+        {% set reason_class = {"received": "badge-blue", "shipped": "badge-purple", "adjustment": "badge-teal", "counted": "badge-neutral"} %}
+        <div class="card">
+            <h2 class="card-title">History for {{ key }}</h2>
+            <table>
+                <tr>
+                    <th>Timestamp</th>
+                    {% if kind == "sku" %}<th>Location</th>{% else %}<th>SKU</th><th>Product</th>{% endif %}
+                    <th>Old Qty</th><th>New Qty</th><th>Reason</th><th>Status</th>
+                </tr>
+                {% for m in entries %}
+                <tr>
+                    <td>{{ m.timestamp }}</td>
+                    {% if kind == "sku" %}
+                        <td>{{ m.location_code }}</td>
+                    {% else %}
+                        <td>{{ m.product_sku }}</td><td>{{ m.product_name }}</td>
+                    {% endif %}
+                    <td>{{ m.old_quantity }}</td>
+                    <td>{{ m.new_quantity }}</td>
+                    <td><span class="badge {{ reason_class.get(m.reason, 'badge-neutral') }}">{{ m.reason }}</span></td>
+                    <td>
+                        {% if m.reason == "counted" %}
+                            {% if m.discrepancy %}
+                                <span class="badge badge-danger">Discrepancy</span>
+                            {% else %}
+                                <span class="badge badge-success">Match</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">No movements recorded yet.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

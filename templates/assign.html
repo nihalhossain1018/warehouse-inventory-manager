@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block page_title %}Assign Inventory{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Scan the product's barcode, then the location's barcode, then type the quantity and hit Enter.</p>{% endblock %}
+{% block content %}
+    <div class="card" style="max-width: 460px;">
+        <form method="post">
+            <label>Product (scan or type SKU)</label>
+            <input type="text" name="sku" id="sku-input" list="sku-list" autocomplete="off" autofocus required>
+            <datalist id="sku-list">
+                {% for p in products %}
+                <option value="{{ p.sku }}">{{ p.name }}</option>
+                {% endfor %}
+            </datalist>
+
+            <label class="checkbox-row">
+                <input type="checkbox" name="auto_place" id="auto-place-toggle">
+                Auto-place — let the system find available space for this product's category
+            </label>
+
+            <label>Location (scan or type code)</label>
+            <input type="text" name="location_code" id="location-input" list="location-list" autocomplete="off" required>
+            <datalist id="location-list">
+                {% for l in locations %}
+                <option value="{{ l.code }}"></option>
+                {% endfor %}
+            </datalist>
+
+            <label>Quantity change (negative to remove units, e.g. -5)</label>
+            <input type="number" name="quantity_change" id="qty-input" required>
+
+            <label>Reason</label>
+            <select name="reason" required>
+                {% for r in reasons %}
+                <option value="{{ r }}" {{ "selected" if r == "received" else "" }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        const autoPlaceToggle = document.getElementById("auto-place-toggle");
+        const locationInput = document.getElementById("location-input");
+
+        autoPlaceToggle.addEventListener("change", () => {
+            locationInput.disabled = autoPlaceToggle.checked;
+            locationInput.required = !autoPlaceToggle.checked;
+            locationInput.value = "";
+            locationInput.placeholder = autoPlaceToggle.checked ? "System will pick a location" : "";
+        });
+
+        // A barcode scanner types the code then sends Enter, like a fast typist.
+        // Without this, Enter would submit the form after just the SKU field.
+        // When auto-place is on there's no location field to jump to, so skip it.
+        document.getElementById("sku-input").addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const next = autoPlaceToggle.checked ? "qty-input" : "location-input";
+                document.getElementById(next).focus();
+            }
+        });
+        locationInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById("qty-input").focus();
+            }
+        });
+    </script>
+{% endblock %}

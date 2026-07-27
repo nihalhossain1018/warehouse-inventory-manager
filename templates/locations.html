@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block page_title %}Locations{% endblock %}
+{% block content %}
+    <div class="two-col">
+        <div class="card">
+            <h2 class="card-title">Add Location</h2>
+            <form method="post">
+                <label>Aisle</label>
+                <input type="text" name="aisle" required>
+
+                <label>Shelf</label>
+                <input type="text" name="shelf" required>
+
+                <label>Bin</label>
+                <input type="text" name="bin" required>
+
+                <label>Capacity (max distinct products)</label>
+                <input type="number" name="capacity" min="1" value="5" required>
+
+                <button type="submit">Add location</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">All Locations</h2>
+            <table>
+                <tr><th>Code</th><th>Aisle</th><th>Shelf</th><th>Bin</th><th>Space</th><th>Categories</th><th>Barcode</th><th></th></tr>
+                {% for l in locations %}
+                <tr>
+                    <td>{{ l.code }}</td>
+                    <td>{{ l.aisle }}</td>
+                    <td>{{ l.shelf }}</td>
+                    <td>{{ l.bin }}</td>
+                    <td>
+                        {% if l.used_slots >= l.capacity %}
+                            <span class="badge badge-danger">{{ l.used_slots }}/{{ l.capacity }} full</span>
+                        {% else %}
+                            <span class="badge badge-success">{{ l.used_slots }}/{{ l.capacity }} open</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ l.categories | join(", ") if l.categories else "—" }}</td>
+                    <td><span class="barcode-chip">{{ barcode_svg(l.code) | safe }}</span></td>
+                    <td>
+                        <form method="post" action="{{ url_for('delete_location', code=l.code) }}" class="inline-form"
+                              onsubmit="return confirm('Delete location {{ l.code }}? This only works if it has no inventory or movement history.');">
+                            <button type="submit" class="btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8">No locations yet.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

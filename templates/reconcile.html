@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block page_title %}Reconcile Physical Count{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Enter what you actually counted on the shelf. The system quantity is updated to match, and a discrepancy is flagged if it didn't already.</p>{% endblock %}
+{% block content %}
+    <div class="card" style="max-width: 460px;">
+        <form method="post">
+            <label>Product (SKU)</label>
+            <select name="sku" required>
+                {% for p in products %}
+                <option value="{{ p.sku }}">{{ p.sku }} - {{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Location</label>
+            <select name="location_code" required>
+                {% for l in locations %}
+                <option value="{{ l.code }}">{{ l.code }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Physical count</label>
+            <input type="number" name="physical_count" min="0" required>
+
+            <button type="submit">Reconcile</button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="card">
+        <h2 class="card-title">Result for {{ result.sku }} @ {{ result.location_code }}</h2>
+        <table>
+            <tr><th>System expected</th><td>{{ result.expected_quantity }}</td></tr>
+            <tr><th>Physical count</th><td>{{ result.physical_count }}</td></tr>
+            <tr><th>Difference</th><td>{{ result.difference }}</td></tr>
+            <tr>
+                <th>Status</th>
+                <td>
+                    {% if result.discrepancy %}
+                        <span class="badge badge-danger">Discrepancy</span>
+                    {% else %}
+                        <span class="badge badge-success">Match</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+{% endblock %}
